@@ -70,11 +70,14 @@ python manage.py runserver
 --------------------------------------------------
 
 ## Accessing the Application
+```
 
 Home: http://127.0.0.1:8000/
 Superstore Dashboard: 
 Staff Login: /staff/login/
 Django Admin: /admin/
+
+```
 
 --------------------------------------------------
 
