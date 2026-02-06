@@ -24,12 +24,13 @@ All apps run within a single Django project using clean URL routing.
 ## Project Structure (Simplified)
 
 superstore/
-├── superstore/   (project settings & main URLs)
+├── superstore/        # project settings & main URLs
 ├── superstore_app/
-	├── static/
-	├── templates/
+│   ├── static/
+│   └── templates/
 ├── staff/
 └── manage.py
+
 
 --------------------------------------------------
 
