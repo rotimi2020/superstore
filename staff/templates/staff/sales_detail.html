@@ -1,0 +1,41 @@
+{% extends 'staff/base.html' %}
+
+{% block page_title %}Sale Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Sale Record</h3>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered">
+            <tr><th>Order Date</th><td>{{ sale.order_date }}</td></tr>
+            <tr><th>Ship Date</th><td>{{ sale.ship_date }}</td></tr>
+            <tr><th>Region</th><td>{{ sale.region }}</td></tr>
+            <tr><th>State</th><td>{{ sale.state }}</td></tr>
+            <tr><th>City</th><td>{{ sale.city }}</td></tr>
+            <tr><th>Category</th><td>{{ sale.category }}</td></tr>
+            <tr><th>Sub-Category</th><td>{{ sale.sub_category }}</td></tr>
+            <tr><th>Sales</th><td>${{ sale.sales }}</td></tr>
+            <tr><th>Profit</th><td>${{ sale.profit }}</td></tr>
+            <tr><th>Quantity</th><td>{{ sale.quantity }}</td></tr>
+            <tr><th>Discount</th><td>{{ sale.discount }}%</td></tr>
+        </table>
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'staff:staff_sales_update' sale.id %}" class="btn btn-primary">
+            Edit
+        </a>
+
+        <a href="{% url 'staff:staff_sales_delete' sale.id %}" class="btn btn-danger">
+            Delete
+        </a>
+
+        <a href="{% url 'staff:staff_sales_list' %}" class="btn btn-secondary float-right">
+            Back
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,398 @@
+<!-- templates/superstore/analytics.html -->
+{% extends 'superstore_app/base.html' %}
+
+{% block title %}Superstore Analytics Dashboard{% endblock %}
+{% block page_title %}Analytics Chart{% endblock %}
+{% block breadcrumb %}Analytics{% endblock %}
+
+{% block content %}
+<!-- BMI Analysis -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">Sales by Segment</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="SalesSegChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">Profit by Sub-Category</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ProfitCatChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- BMI Analysis -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">Profit Over Time</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ProfitTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BMI Analysis -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">Quantity vs Sales</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="QuantitySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">Profit vs Discount</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ProfitDIsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BMI Statistics Table -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">Sales & Profit by State</h3>
+            </div>
+            <div class="card-body">
+                <div id="stateMap"  style="height: 500px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ctx = document.getElementById('SalesSegChart').getContext('2d');
+    const SalesSegChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ segment_labels|safe }},  // Segment names
+            datasets: [{
+                label: 'Sales ($)',
+                data: {{ segment_sales|safe }},   // Sales values
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Total Sales by Segment' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+        
+    });
+</script>
+
+<script>
+    const ctxRight = document.getElementById('ProfitCatChart').getContext('2d');
+    const subcatLabels = {{ subcat_labels|safe }};
+    const subcatProfit = {{ subcat_profit|safe }};
+
+    new Chart(ctxRight, {
+        type: 'bar',
+        indexAxis: 'y',  // horizontal bar
+        data: {
+            labels: subcatLabels,
+            datasets: [{
+                label: 'Profit ($)',
+                data: subcatProfit,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Profit by Sub-Category' }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    const profitCanvas = document.getElementById('ProfitTimeChart');
+    if (profitCanvas) {
+        const ctxProfit = profitCanvas.getContext('2d');
+
+        const profitLabels = {{ profit_dates|safe }};
+        const profitData = {{ profit_values|safe }};
+
+        const processedProfitData = profitData.map(value => {
+            const num = Number(value);
+            return isNaN(num) ? null : num;
+        });
+
+        new Chart(ctxProfit, {
+            type: 'line',
+            data: {
+                labels: profitLabels,
+                datasets: [{
+                    label: 'Profit ($)',
+                    data: processedProfitData,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40,167,69,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#28a745',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1,
+                    spanGaps: true,
+                    showLine: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: { enabled: true, mode: 'index', intersect: false }
+                },
+                interaction: { mode: 'nearest', intersect: false },
+                scales: {
+                    x: {
+                        type: 'category',
+                        ticks: { maxTicksLimit: 8, autoSkip: true },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toLocaleString(); } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                },
+                elements: { line: { tension: 0.2 }, point: { radius: 3, hoverRadius: 5 } }
+            }
+        });
+    }
+</script>
+
+<script>
+    const scatterCanvas = document.getElementById('QuantitySalesChart');
+    if (scatterCanvas) {
+        const ctxScatter = scatterCanvas.getContext('2d');
+        const scatterData = {{ quantity_sales_data|safe }};
+        
+        new Chart(ctxScatter, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Quantity vs Sales',
+                    data: scatterData,
+                    backgroundColor: 'rgba(255,99,132,0.6)',
+                    borderColor: 'rgba(255,99,132,1)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Sales ($)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+<script>
+    const profitDisCanvas = document.getElementById('ProfitDIsChart');
+
+    if (profitDisCanvas) {
+        const ctx = profitDisCanvas.getContext('2d');
+
+        const profitDiscountData = {{ profit_discount_data|safe }};
+
+        new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Profit vs Discount',
+                    data: profitDiscountData,
+                    backgroundColor: function(context) {
+                        return context.raw.y >= 0
+                            ? 'rgba(40, 167, 69, 0.6)'   // profit
+                            : 'rgba(220, 53, 69, 0.6)'; // loss
+                    },
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const d = ctx.raw;
+                                return [
+                                    `Discount: ${(d.x * 100).toFixed(0)}%`,
+                                    `Profit: $${d.y.toLocaleString()}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Discount'
+                        },
+                        ticks: {
+                            callback: v => (v * 100) + '%'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Profit ($)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<script>
+    const stateData = {{ state_map_data|safe }};
+
+    const map = L.map('stateMap').setView([37.8, -96], 4);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function getColor(profit) {
+        return profit > 50000 ? '#006d2c' :
+               profit > 10000 ? '#31a354' :
+               profit > 0     ? '#74c476' :
+               profit > -10000 ? '#fcae91' :
+                                 '#cb181d';
+    }
+
+    function style(feature) {
+        const stateName = feature.properties.name;
+        const data = stateData[stateName];
+
+        return {
+            fillColor: data ? getColor(data.profit) : '#dddddd',
+            weight: 1,
+            opacity: 1,
+            color: '#ffffff',
+            fillOpacity: 0.75
+        };
+    }
+
+    function onEachFeature(feature, layer) {
+        const stateName = feature.properties.name;
+        const data = stateData[stateName];
+
+        if (data) {
+            layer.bindTooltip(
+                `<strong>${stateName}</strong><br>
+                 Sales: $${data.sales.toLocaleString()}<br>
+                 Profit: $${data.profit.toLocaleString()}`,
+                { sticky: true }
+            );
+        } else {
+            layer.bindTooltip(`<strong>${stateName}</strong><br>No data`);
+        }
+    }
+
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+        .then(res => res.json())
+        .then(geojson => {
+            L.geoJson(geojson, {
+                style: style,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+        });
+</script>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'staff/base.html' %}
+
+{% block page_title %}
+    {% if form.instance.pk %}Edit Sale{% else %}Add Sale{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            {% if form.instance.pk %}Edit Sale Record{% else %}Add New Sale{% endif %}
+        </h3>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Order Date</th>
+                    <td>{{ form.order_date }}</td>
+                </tr>
+                <tr>
+                    <th>Ship Date</th>
+                    <td>{{ form.ship_date }}</td>
+                </tr>
+                <tr>
+                    <th>Region</th>
+                    <td>{{ form.region }}</td>
+                </tr>
+                <tr>
+                    <th>State</th>
+                    <td>{{ form.state }}</td>
+                </tr>
+                <tr>
+                    <th>City</th>
+                    <td>{{ form.city }}</td>
+                </tr>
+                <tr>
+                    <th>Segment</th>
+                    <td>{{ form.segment }}</td>
+                </tr>
+                <tr>
+                    <th>Category</th>
+                    <td>{{ form.category }}</td>
+                </tr>
+                <tr>
+                    <th>Sub-Category</th>
+                    <td>{{ form.sub_category }}</td>
+                </tr>
+                <tr>
+                    <th>Ship Mode</th>
+                    <td>{{ form.ship_mode }}</td>
+                </tr>
+                <tr>
+                    <th>Sales ($)</th>
+                    <td>{{ form.sales }}</td>
+                </tr>
+                <tr>
+                    <th>Profit ($)</th>
+                    <td>{{ form.profit }}</td>
+                </tr>
+                <tr>
+                    <th>Quantity</th>
+                    <td>{{ form.quantity }}</td>
+                </tr>
+                <tr>
+                    <th>Discount (%)</th>
+                    <td>{{ form.discount }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-success">
+                Save
+            </button>
+
+            <a href="{% url 'staff:staff_sales_list' %}" class="btn btn-secondary float-right">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

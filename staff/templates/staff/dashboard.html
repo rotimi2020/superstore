@@ -1,0 +1,6 @@
+{% extends 'staff/base.html' %}
+{% block content %}
+<h3>Staff Dashboard</h3>
+<p>Total Sales Records: {{ total_sales }}</p>
+<a href="{% url 'staff:staff_sales_list' %}" class="btn btn-info">Manage Sales</a>
+{% endblock %}

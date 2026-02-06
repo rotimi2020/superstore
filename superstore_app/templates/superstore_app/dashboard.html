@@ -1,0 +1,298 @@
+<!-- templates/dashboard/dashboard.html -->
+
+{% extends 'superstore_app/base.html' %}
+{% load humanize %}
+
+{% block title %}Superstore Dashboard{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Info boxes -->
+<!-- Sales KPI Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3>${{ totalSales|floatformat:2|intcomma }}</h3>
+                            <p>Total Sales</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3>${{ totalProfit|floatformat:2|intcomma }}</h3>
+                            <p>Total Profit</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3>${{ avgSalePerOrder|floatformat:2 }}</h3>
+                            <p>Average Sale per Order</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3>${{ avgProfitPerOrder|floatformat:2 }}</h3>
+                            <p>Average Profit per Order</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header border-0">
+                <h3 class="card-title">Profit by Category</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ProfitCatChart1"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-6">
+    <div class="card">
+        <div class="card-header border-0">
+            <h3 class="card-title">Sales by Category</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="SaleCatChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+    {% comment %} <div class="col-md-6">
+        <div class="card">
+            <div class="card-header border-0">
+                <h3 class="card-title">Total Sales over Time</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="SaleTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div> {% endcomment %}
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header border-0">
+                <h3 class="card-title">Total Sales over Time</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="SaleTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ======= BAR CHART: Sales by Category =======
+    const barCanvas = document.getElementById('SaleCatChart');
+    if (barCanvas) {
+        const ctxBar = barCanvas.getContext('2d');
+
+        const labels = {{ bar_categories|safe }};
+        const data = {{ bar_category_sales|safe }};
+
+        // Professional colors for bars
+        const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'];
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Sales ($)',
+                    data: data,
+                    backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+                    borderRadius: 5,
+                    maxBarThickness: 60
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: { ticks: { autoSkip: false } }
+                }
+            }
+        });
+    }
+
+    // ======= LINE CHART: Total Sales over Time - FIXED =======
+    const lineCanvas = document.getElementById('SaleTimeChart');
+    if (lineCanvas) {
+        const ctxLine = lineCanvas.getContext('2d');
+
+        const lineLabels = {{ line_dates|safe }};
+        const lineData = {{ line_sales|safe }};
+        
+        const processedData = lineData.map(value => {
+            const num = Number(value);
+            return isNaN(num) ? null : num;
+        });
+
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: lineLabels,
+                datasets: [{
+                    label: 'Total Sales',
+                    data: processedData,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0,123,255,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#007bff',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1,
+                    spanGaps: true,
+                    showLine: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: { 
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        ticks: { 
+                            maxTicksLimit: 8,
+                            autoSkip: true
+                        },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value; } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                },
+                elements: {
+                    line: { tension: 0.2 },
+                    point: { radius: 3, hoverRadius: 5 }
+                }
+            }
+        });
+    }
+
+    // ======= DOUGHNUT CHART: Profit by Category (MATCH COLORS WITH BAR CHART) =======
+    const profitCanvas = document.getElementById('ProfitCatChart1');
+    if (profitCanvas) {
+        const ctxProfit = profitCanvas.getContext('2d');
+
+        const profitLabels = {{ profit_categories|safe }};
+        const profitData = {{ category_profits|safe }};
+
+        // Use same colors as Sales by Category
+        const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'];
+
+        new Chart(ctxProfit, {
+            type: 'doughnut',
+            data: {
+                labels: profitLabels,
+                datasets: [{
+                    label: 'Profit ($)',
+                    data: profitData,
+                    backgroundColor: profitLabels.map((_, i) => colors[i % colors.length]),
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': $' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+
+
+{% endblock %}

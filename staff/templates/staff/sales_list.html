@@ -1,0 +1,214 @@
+<!-- templates/staff/sales_list.html -->
+{% extends 'staff/base.html' %}
+
+{% block title %}Superstore Sales Dashboard{% endblock %}
+{% block page_title %}Sales Records{% endblock %}
+{% block breadcrumb %}Sales{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+
+            <!-- Sales KPI Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 id="totalSales">-</h3>
+                            <p>Total Sales</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 id="totalProfit">-</h3>
+                            <p>Total Profit</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3 id="avgSalePerOrder">-</h3>
+                            <p>Average Sale per Order</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="small-box bg-primary">
+                        <div class="inner">
+                            <h3 id="avgProfitPerOrder">-</h3>
+                            <p>Average Profit per Order</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Header / Search / Add -->
+            <div class="card-header">
+                <h3 class="card-title">Sales Database</h3>
+                <div class="card-tools d-flex">
+                    <a href="{% url 'staff:staff_sales_create' %}" class="btn btn-success btn-sm mr-2">
+                        Add Sale
+                    </a>
+                    <div class="input-group input-group-sm" style="width: 250px;">
+                        <input type="text" id="searchInput" class="form-control float-right" placeholder="Search sales...">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-default">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Body / Table -->
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap" id="salesTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>#</th>
+                            <th>Order Date</th>
+                            <th>Ship Date</th>
+                            <th>Region</th>
+                            <th>State</th>
+                            <th>City</th>
+                            <th>Segment</th>
+                            <th>Category</th>
+                            <th>Sub-Category</th> 
+                            <th>Ship Mode</th>
+                            <th>Sales ($)</th>
+                            <th>Profit ($)</th>
+                            <th>Quantity</th>
+                            <th>Discount (%)</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in sales_data %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'staff:staff_sales_detail' row.id %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </td>
+
+
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ row.order_date }}</td>
+                        <td>{{ row.ship_date }}</td>
+                        <td>{{ row.region }}</td>
+                        <td>{{ row.state }}</td>
+                        <td>{{ row.city }}</td>
+                        <td>{{ row.segment }}</td>
+                        <td>{{ row.category }}</td>
+                        <td>{{ row.sub_category }}</td>
+                        <td>{{ row.ship_mode }}</td>
+                        <td>${{ row.sales|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge {% if row.profit < 0 %}badge-danger{% else %}badge-success{% endif %}">
+                                ${{ row.profit|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td>{{ row.quantity }}</td>
+                        <td>{{ row.discount|floatformat:1 }}%</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            <!-- Card Footer / Pagination -->
+            <div class="card-footer clearfix">
+                <div class="float-left">
+                    <small class="text-muted">
+                        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                        of {{ page_obj.paginator.count }} sales records
+                    </small>
+                </div>
+
+                <ul class="pagination pagination-sm m-0 float-right">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const rows = $('#salesTable tbody tr');
+
+    if (rows.length > 0) {
+
+        let totalSales = 0, totalProfit = 0, count = 0;
+
+        rows.each(function() {
+            const cells = $(this).find('td');
+            const salesText = cells.eq(11).text().replace('$','').trim();
+            const profitText = cells.eq(12).text().replace('$','').trim();
+
+
+            totalSales += parseFloat(salesText) || 0;
+            totalProfit += parseFloat(profitText) || 0;
+            count++;
+        });
+
+            const moneyFormatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            });
+
+            $('#totalSales').text(moneyFormatter.format(totalSales));
+            $('#totalProfit').text(moneyFormatter.format(totalProfit));
+            $('#avgSalePerOrder').text(moneyFormatter.format(totalSales / count));
+            $('#avgProfitPerOrder').text(moneyFormatter.format(totalProfit / count));
+
+    }
+
+    $('#searchInput').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $('#salesTable tbody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+});
+</script>
+{% endblock %}
