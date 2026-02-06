@@ -40,6 +40,8 @@ superstore/
 
 ## Installation & Setup
 
+```
+
 1. Clone the repository
 
 git clone https://github.com/rotimi2020/superstore.git
@@ -66,6 +68,8 @@ python manage.py createsuperuser
 6. Run the development server
 
 python manage.py runserver
+
+```
 
 --------------------------------------------------
 
