@@ -44,8 +44,8 @@ superstore/
 
 1. Clone the repository
 
-git clone https://github.com/rotimi2020/superstore.git
-cd superstore
+git clone https://github.com/rotimi2020/superstore-dashboard.git
+cd superstore-dashboard
 
 2. Create and activate a virtual environment
 
