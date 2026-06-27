@@ -1,5 +1,7 @@
 # Django Single-App Dashboard Platform
 
+**Live demo:** [rotimi.pythonanywhere.com](https://rotimi.pythonanywhere.com)
+
 This is a Django-based project that hosts multiple applications under one project.
 It includes an analytics dashboards and a custom staff admin panel.
 
